@@ -1,13 +1,18 @@
+*{
+    box-sizing: border-box;
+}
+
 header {
     display: flex;
     justify-content: center;
     padding: 20px;
     width: 100%;
     background-color: white;
-    position: fixed;
+    position:absolute;
 }
 
 body {
+    position: relative;
     height: 100vh;
     margin: 0;
 }
