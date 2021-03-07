@@ -1,28 +1,68 @@
-*{
+@font-face {
+	font-family: 'Questrial';
+	src: url('Questrial-Regular.ttf') format('truetype');
+}
+
+* {
+    font-size: 1rem;
     box-sizing: border-box;
+    font-family: 'Questrial', sans-serif;
+    box-sizing: border-box;
+    margin: 0;
 }
 
 header {
-    display: flex;
-    justify-content: center;
-    padding: 20px;
+    overflow: auto;
     width: 100%;
     background-color: white;
     position: fixed;
     top: 0;
 }
 
+.header{
+    display: flex;
+    width: max-content;
+    gap: 12px;
+    margin: auto;
+    padding: 20px 0;
+}
+
 body {
     position: relative;
     height: 100vh;
-    margin: 0;
-}
-
-#skipListGraphicDisplay {
-    height: 100%;
+    padding: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.container{
+    overflow: auto;
+    width: 100%;
+}
+
+#skipListGraphicDisplay {
+    position: relative;
+    width: max-content;
+    margin: auto;
+    display: flex;
+    gap: 18px;
+}
+
+.lines{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    padding: 15px 0;
+    position: absolute;
+    top: 0;
+}
+
+hr{
+    margin: 0;
 }
 
 footer {
@@ -36,12 +76,35 @@ footer {
 }
 
 .node {
-    width: 30px;
-    height: 30px;
-    border-radius: 10%;
+    display: grid;
+    grid-template-columns: auto auto;
+    background-color: white;
+    align-self: flex-end;
+    align-items: center;
+    justify-content: center;
+}
+
+.value {
+    padding: 0 6px;
+    height: 100%;
     border: 2px black solid;
-    border-color: black;
     display: flex;
     align-items: center;
     justify-content: center;
 }
+
+.level{
+    width: 6px;
+    height: 30px;
+    border: 2px black solid;
+    border-left: none;
+    border-bottom: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.level:last-child{
+    border-bottom: 2px black solid;
+}
+

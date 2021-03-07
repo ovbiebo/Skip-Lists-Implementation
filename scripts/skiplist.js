@@ -11,6 +11,9 @@
 //
 // if next is null move down
 //
+function getRandomInt(max) {
+    return Math.floor(Math.random() * Math.floor(max));
+}
 
 class Observable {
     constructor() {
@@ -27,7 +30,7 @@ class Observable {
         });
     }
 
-    fire(updatedState) {
+    notifyObservers(updatedState) {
         this.observers.forEach((fn) => {
             if (typeof fn === "function") fn(updatedState);
         });
@@ -35,52 +38,101 @@ class Observable {
 }
 
 class Node {
-    constructor(value, next = null, down = null) {
+    constructor(value, next = null) {
         this.value = value;
-        this.next = next;
-        this.down = down;
+        this.next = [next];
     }
 }
 
 class SkipList extends Observable {
-    constructor(head) {
+    constructor() {
         super();
-        this.head = new Node(Number.NEGATIVE_INFINITY, null, null);
-        this.tail = new Node(Number.POSITIVE_INFINITY, null, null);
+        //tail
+        this.sentinel = new Node(Number.POSITIVE_INFINITY, null);
+        //head
+        this.header = new Node(Number.NEGATIVE_INFINITY, this.sentinel);
     }
 
     insert(numberToInsert) {
-        super.fire(this.head);
+        let lastNodesInPrevLevels = [];
+        let currentNode = this.header;
+        // Start at highest level
+        let currentLevel = currentNode.next.length - 1;
+
+        while (currentNode.next[currentLevel] !== null) {
+            //check if insertion value >= currentNode value & < next node value
+            if (numberToInsert > currentNode.value) {
+                if (numberToInsert < currentNode.next[currentLevel].value) {
+                    if (currentLevel === 0) {
+                        const newNode = new Node(
+                            numberToInsert,
+                            currentNode.next[0]
+                        );
+                        currentNode.next[0] = newNode;
+
+                        //flip a coin to add levels while switching pointers using the nodes in lastNodesInPrevLevels
+                        let i = 1;
+                        while (getRandomInt(2) !== 0) {
+                            if (i > lastNodesInPrevLevels.length) {
+                                newNode.next[i] = this.sentinel;
+                                this.sentinel.next[i] = null;
+                                this.header.next[i] = newNode;
+                            } 
+                            else {
+                                let l = lastNodesInPrevLevels.length;
+                                newNode.next[i] = lastNodesInPrevLevels[l - i].next[i];
+                                lastNodesInPrevLevels[l - i].next[i] = newNode;
+                            }
+                            i++;
+                        }
+
+                        break;
+                    } else {
+                        lastNodesInPrevLevels.push(currentNode);
+                        currentLevel--;
+                        continue;
+                    }
+                } else {
+                    currentNode = currentNode.next[currentLevel];
+                }
+            } else {
+                break;
+            }
+        }
+        
+        super.notifyObservers(this.header);
     }
 
     delete(numberToDelete) {
-        super.fire(this.head);
+        super.notifyObservers(this.header);
     }
 
     find(numberToFind) {
-        super.fire(this.head);
+        super.notifyObservers(this.header);
     }
 
     toString() {
-        let currentNode = this.head;
+        let currentNode = this.header.next[0];
         let skipListAsString = "";
 
-        while (currentNode.down != null) {
-            currentNode = currentNode.down;
-            while (currentNode.right != this.tail) {
-                skipListAsString.concat(`${currentNode.element} `);
-                currentNode = currentNode.right;
-            }
+        while (currentNode.next[0] !== null) {
+            skipListAsString = skipListAsString.concat(
+                `${currentNode.value}, `
+            );
+            currentNode = currentNode.next[0];
         }
 
-        return skipListAsString ? `SkipList: ${skipListAsString}` : "";
+        return skipListAsString
+            ? `SkipList: ${skipListAsString}`
+            : "The skip list is empty.";
     }
 
     clear() {
-        this.head.right = this.tail;
-        this.head.down = null;
-        super.fire(this.head);
+        this.sentinel.next = [null];
+        this.header.next = [this.sentinel];
+        console.log(this.header)
+        super.notifyObservers(this.header);
     }
 }
 
-const skipList = new SkipList(null);
+const skipList = new SkipList();

@@ -1,12 +1,6 @@
-document
-    .querySelector("#insertButton")
-    .addEventListener("click", insertButtonClicked);
-document
-    .querySelector("#deleteButton")
-    .addEventListener("click", deleteButtonClicked);
-document
-    .querySelector("#findButton")
-    .addEventListener("click", findButtonClicked);
+document.querySelector("#insert").addEventListener("submit", insertSubmitted);
+document.querySelector("#delete").addEventListener("submit", deleteSubmitted);
+document.querySelector("#find").addEventListener("submit", findSubmitted);
 document
     .querySelector("#printButton")
     .addEventListener("click", printButtonClicked);
@@ -14,25 +8,24 @@ document
     .querySelector("#clearButton")
     .addEventListener("click", clearButtonClicked);
 
-const insertField = document.querySelector("#insert");
-const deleteField = document.querySelector("#delete");
-const findField = document.querySelector("#find");
-
 const skiplistGraphicDisplay = document.querySelector(
     "#skipListGraphicDisplay"
 );
 const skiplistTextDisplay = document.querySelector("#skipListTextDisplay");
 
-function insertButtonClicked(c) {
-    skipList.insert(insertField.value);
+function insertSubmitted(c) {
+    c.preventDefault();
+    skipList.insert(Number.parseFloat(c.target.insert.value));
 }
 
-function deleteButtonClicked(c) {
-    skipList.delete(deleteField.value);
+function deleteSubmitted(c) {
+    c.preventDefault();
+    skipList.delete(Number.parseFloat(c.target.delete.value));
 }
 
-function findButtonClicked(c) {
-    skipList.find(findField.value);
+function findSubmitted(c) {
+    c.preventDefault();
+    skipList.find(Number.parseFloat(c.target.find.value));
 }
 
 function printButtonClicked(c) {
@@ -43,31 +36,56 @@ function clearButtonClicked(c) {
     skipList.clear();
 }
 
-skipList.subscribe(drawSkipList);
+skipList.subscribe(renderSkipList);
 
-function drawSkipList(updatedSkiplist) {
+function renderSkipList(updatedSkiplist) {
+    skiplistGraphicDisplay.innerHTML = "";
+    let pointers = document.createElement("div");
+    pointers.setAttribute("class", "lines")
+    skiplistGraphicDisplay.appendChild(pointers);
+
     let currentNode = updatedSkiplist;
 
-    while (currentNode.down != null) {
-        currentNode = currentNode.down;
-        while (currentNode.right != this.tail) {
-            drawNode();
-            skiplistGraphicDisplay.appendChild();
-            currentNode = currentNode.right;
-        }
+    while (currentNode != null) {
+        skiplistGraphicDisplay.appendChild(drawNode(currentNode));
+        currentNode = currentNode.next[0];
     }
 
-    drawNode();
+    for (e = 0; e < updatedSkiplist.next.length; e++) {
+        pointers.appendChild(document.createElement("hr"));
+    }
+
+    write("");
 }
 
-function drawNode(){
+function drawNode(node) {
+    //creates node div
     let newNode = document.createElement("div");
-    let newNodeContent = document.createTextNode(2);
-    newNode.appendChild(newNodeContent);
     newNode.setAttribute("class", "node");
-    skiplistGraphicDisplay.appendChild(newNode);
+
+    //creates value div inside node div
+    let value = document.createElement("div");
+    value.setAttribute("class", "value");
+    value.appendChild(document.createTextNode(node.value));
+    newNode.appendChild(value);
+
+    //creates levels div inside node div
+    let levels = document.createElement("div");
+    newNode.appendChild(levels);
+
+    //creates individual level divs inside levels div
+    node.next.map((next, index) => {
+        let level = document.createElement("div");
+        level.setAttribute("class", "level");
+        // level.setAttribute("id", index);
+        levels.appendChild(level);
+    });
+
+    return newNode;
 }
 
 function write(skiplist) {
     skiplistTextDisplay.innerText = skiplist;
 }
+
+renderSkipList(skipList.header);
