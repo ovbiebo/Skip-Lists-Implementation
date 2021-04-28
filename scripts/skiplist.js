@@ -1,16 +1,3 @@
-// Things to think about
-// How to determine the max level of the skip list - user should input or random number between  1-5
-// How to
-
-// TODO
-// for insertion
-// Get head node
-// check if insertion value is greate or less than current node
-// if it's less move to next
-//      if next is null move down
-//
-// if next is null move down
-//
 function getRandomInt(max) {
     return Math.floor(Math.random() * Math.floor(max));
 }
@@ -54,60 +41,84 @@ class SkipList extends Observable {
     }
 
     insert(numberToInsert) {
-        let lastNodesInPrevLevels = [];
-        let currentNode = this.header;
-        // Start at highest level
-        let currentLevel = currentNode.next.length - 1;
+        const { isFound, lastNodesInPrevLevels } = this.find(numberToInsert);
 
-        while (currentNode.next[currentLevel] !== null) {
-            //check if insertion value >= currentNode value & < next node value
-            if (numberToInsert > currentNode.value) {
-                if (numberToInsert < currentNode.next[currentLevel].value) {
-                    if (currentLevel === 0) {
-                        const newNode = new Node(
-                            numberToInsert,
-                            currentNode.next[0]
-                        );
-                        currentNode.next[0] = newNode;
+        if (!isFound) {
+            const newNode = new Node(
+                numberToInsert,
+                lastNodesInPrevLevels[0].next[0]
+            );
+            lastNodesInPrevLevels[0].next[0] = newNode;
 
-                        //flip a coin to add levels while switching pointers using the nodes in lastNodesInPrevLevels
-                        let i = 1;
-                        while (getRandomInt(2) !== 0) {
-                            if (i > lastNodesInPrevLevels.length) {
-                                newNode.next[i] = this.sentinel;
-                                this.sentinel.next[i] = null;
-                                this.header.next[i] = newNode;
-                            } 
-                            else {
-                                let l = lastNodesInPrevLevels.length;
-                                newNode.next[i] = lastNodesInPrevLevels[l - i].next[i];
-                                lastNodesInPrevLevels[l - i].next[i] = newNode;
-                            }
-                            i++;
-                        }
-
-                        break;
-                    } else {
-                        lastNodesInPrevLevels.push(currentNode);
-                        currentLevel--;
-                        continue;
-                    }
+            //flip a coin to add levels while switching pointers using the nodes in lastNodesInPrevLevels
+            let i = 1;
+            while (getRandomInt(2) !== 0) {
+                if (i > this.header.next.length - 1) {
+                    newNode.next[i] = this.sentinel;
+                    this.sentinel.next[i] = null;
+                    this.header.next[i] = newNode;
                 } else {
-                    currentNode = currentNode.next[currentLevel];
+                    newNode.next[i] = lastNodesInPrevLevels[i].next[i];
+                    lastNodesInPrevLevels[i].next[i] = newNode;
                 }
-            } else {
-                break;
+                i++;
             }
         }
-        
+
         super.notifyObservers(this.header);
     }
 
     delete(numberToDelete) {
+        const { isFound, lastNodesInPrevLevels, foundNode } = this.find(
+            numberToDelete
+        );
+
+        if (isFound) {
+            foundNode.next.map((node, index) => {
+                lastNodesInPrevLevels[index].next[index] = node;
+            });
+        }
+
         super.notifyObservers(this.header);
     }
 
     find(numberToFind) {
+        let currentNode = this.header;
+        let currentLevel = currentNode.next.length - 1; // Start at highest level
+        let isFound = false;
+        let lastNodesInPrevLevels = [];
+
+        while (currentNode.next[currentLevel]) {
+            if (numberToFind < currentNode.next[currentLevel].value) {
+                lastNodesInPrevLevels.unshift(currentNode);
+                if (currentLevel > 0) {
+                    currentLevel--;
+                } else {
+                    //is not found
+                    return { isFound, lastNodesInPrevLevels };
+                }
+            } else if (numberToFind > currentNode.next[currentLevel].value) {
+                currentNode = currentNode.next[currentLevel];
+            } else if (numberToFind == currentNode.next[currentLevel].value) {
+                isFound = true;
+                lastNodesInPrevLevels.unshift(currentNode);
+                currentLevel--;
+            } else {
+                return { isFound: false, lastNodesInPrevLevels };
+            }
+        }
+
+        //is found
+        return {
+            isFound,
+            lastNodesInPrevLevels,
+            foundNode: currentNode.next[0],
+        };
+    }
+
+    clear() {
+        this.sentinel.next = [null];
+        this.header.next = [this.sentinel];
         super.notifyObservers(this.header);
     }
 
@@ -125,13 +136,6 @@ class SkipList extends Observable {
         return skipListAsString
             ? `SkipList: ${skipListAsString}`
             : "The skip list is empty.";
-    }
-
-    clear() {
-        this.sentinel.next = [null];
-        this.header.next = [this.sentinel];
-        console.log(this.header)
-        super.notifyObservers(this.header);
     }
 }
 

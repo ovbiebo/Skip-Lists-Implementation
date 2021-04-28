@@ -25,7 +25,12 @@ function deleteSubmitted(c) {
 
 function findSubmitted(c) {
     c.preventDefault();
-    skipList.find(Number.parseFloat(c.target.find.value));
+    const { isFound } = skipList.find(Number.parseFloat(c.target.find.value));
+    write(
+        `${c.target.find.value} ${
+            isFound ? "is in the skiplist" : "is NOT in the skiplist"
+        }`
+    );
 }
 
 function printButtonClicked(c) {
@@ -41,7 +46,7 @@ skipList.subscribe(renderSkipList);
 function renderSkipList(updatedSkiplist) {
     skiplistGraphicDisplay.innerHTML = "";
     let pointers = document.createElement("div");
-    pointers.setAttribute("class", "lines")
+    pointers.setAttribute("class", "lines");
     skiplistGraphicDisplay.appendChild(pointers);
 
     let currentNode = updatedSkiplist;
@@ -77,15 +82,14 @@ function drawNode(node) {
     node.next.map((next, index) => {
         let level = document.createElement("div");
         level.setAttribute("class", "level");
-        // level.setAttribute("id", index);
         levels.appendChild(level);
     });
 
     return newNode;
 }
 
-function write(skiplist) {
-    skiplistTextDisplay.innerText = skiplist;
+function write(content) {
+    skiplistTextDisplay.innerText = content;
 }
 
 renderSkipList(skipList.header);
